@@ -1,0 +1,17 @@
+adminDomainName: http://127.0.0.1:8081/
+server:
+  port: 8081
+  jwtKey : qcxx-admin
+datasource:
+  driverName: mysql
+  host: mysql
+  port: 3306
+  database: qcxx
+  username: root
+  password: root
+  charset: utf8mb4
+redis:
+  host: myRedis
+  port: 6379
+  password: 123456
+  db: 0

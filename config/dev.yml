@@ -1,0 +1,17 @@
+adminDomainName: https://qcxx-admin-api.ddhmit.net/
+server:
+  port: 8081
+  jwtKey : qcxx-admin
+datasource:
+  driverName: mysql
+  host: mysql
+  port: 3306
+  database: risingstar
+  username: root
+  password: khd5fM1N2sOTuM2C
+  charset: utf8mb4
+redis:
+  host: myRedis
+  port: 6379
+  password: CF8688D045FEF1E6D0259299FB108CD
+  db: 1

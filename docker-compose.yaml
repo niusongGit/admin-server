@@ -1,0 +1,50 @@
+version: '3'
+services:
+  redis:
+    image: 'redis:latest'
+    privileged: true
+    user: root
+    # 失败后总是重启
+    restart: always
+    container_name: myredis
+    networks:
+      - my_net
+    volumes:
+      - /var/data/docker/redis:/data
+      # 注意这里需要先  /var/data/docker/redis/conf  新建redis.conf文件  redis.conf文件可从http://www.redis.cn/下载
+      - /var/data/docker/redis/redis.conf:/etc/redis/redis.conf
+      - /var/data/docker/redis/logs:/logs
+    command:
+      # 以配置文件的方式启动 redis.conf
+      redis-server /etc/redis/redis.conf --requirepass 123456 --appendonly yes --slave-read-only no
+    environment:
+      # 时区上海 - Time zone Shanghai (Change if needed)
+      TZ: Asia/Shanghai
+    ports:
+      # 端口号
+      - '6379:6379'
+  mysql:
+    image: mysql:8.0.21
+    user: root
+    restart: always
+    container_name: mymysql8
+    networks:
+      - my_net
+    volumes:
+      - /var/data/docker/mysql8/mysql:/etc/mysql
+      - /var/data/docker/mysql8/mysql-files:/var/lib/mysql-files
+      - /var/data/docker/mysql8/logs:/logs
+      - /var/data/docker/mysql8/data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: qcxx
+      # 时区上海 - Time zone Shanghai (Change if needed)
+      TZ: Asia/Shanghai
+
+    ports:
+      - '6306:3306'
+
+networks:
+  my_net:
+    external:
+      name: my-bridge
