@@ -8,7 +8,7 @@ datasource:
   port: 3306
   database: qcxx
   username: root
-  password: root
+  password: 123456
   charset: utf8mb4
 redis:
   host: 127.0.0.1

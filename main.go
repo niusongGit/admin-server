@@ -5,6 +5,7 @@ import (
 	"admin-server/internal/middleware"
 	"admin-server/internal/model"
 	"admin-server/internal/routers"
+	"admin-server/pkg/casbinrbac"
 	"admin-server/pkg/crontask"
 	"admin-server/pkg/goredis"
 	"admin-server/pkg/logger"
@@ -32,7 +33,12 @@ func main() {
 	rdb := goredis.InitRedis()
 	defer rdb.Close()
 
-	err := initData()
+	_, err := casbinrbac.InitializeCasbinEnforcer(orm.GetDB())
+	if err != nil {
+		panic(err)
+	}
+
+	err = initData()
 	if err != nil {
 		panic(err)
 	}

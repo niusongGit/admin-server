@@ -18,7 +18,7 @@ import (
 type Admin struct {
 }
 
-func (c Admin) Register(ctx *gin.Context) {
+func (c Admin) Add(ctx *gin.Context) {
 
 	var req = schema.AdminRequest{}
 
@@ -46,13 +46,13 @@ func (c Admin) Register(ctx *gin.Context) {
 		return
 	}
 
-	if err := s.Add(&model.Admin{AdminName: req.AdminName, Password: string(hashedPassword)}); err != nil {
+	if err := s.Add(&model.Admin{AdminName: req.AdminName, Password: string(hashedPassword), RoleId: req.RoleId}); err != nil {
 		response.Response(ctx, http.StatusInternalServerError, errmsg.ERROE_ADD_DATA, nil, err.Error())
 		return
 	}
 
 	//返回结果
-	response.Success(ctx, nil, "注册成功")
+	response.Success(ctx, nil, "添加成功")
 }
 
 func (c Admin) Login(ctx *gin.Context) {
@@ -110,8 +110,13 @@ func (c Admin) Login(ctx *gin.Context) {
 func (c Admin) Info(ctx *gin.Context) {
 	admin, _ := ctx.Get("admin")
 	adminInfo := admin.(model.Admin)
-
-	response.Success(ctx, gin.H{"admin_id": adminInfo.Id, "admin_name": adminInfo.AdminName, "last_login_time": adminInfo.LastLoginTime.Unix()}, "ok")
+	roleName := consts.RootRoleName
+	if adminInfo.RoleId > 0 {
+		role := model.Role{}
+		orm.GetDBWithContext(ctx.Request.Context()).First(&role, adminInfo.RoleId)
+		roleName = role.Name
+	}
+	response.Success(ctx, gin.H{"admin_id": adminInfo.Id, "admin_name": adminInfo.AdminName, "last_login_time": adminInfo.LastLoginTime.Unix(), "role_id": adminInfo.RoleId, "role_name": roleName}, "ok")
 }
 
 func (c Admin) ChangePassword(ctx *gin.Context) {
@@ -155,6 +160,61 @@ func (c Admin) ChangePassword(ctx *gin.Context) {
 
 	//返回结果
 	response.Success(ctx, nil, "成功")
+}
+
+func (c Admin) Update(ctx *gin.Context) {
+
+	var req = schema.AdminRequest{}
+
+	if err := ctx.BindJSON(&req); err != nil {
+		response.Fail(ctx, errmsg.INVALIDDATAFORMAT, nil)
+		return
+	}
+
+	if req.Id <= 0 {
+		response.Response(ctx, http.StatusOK, errmsg.VALIDATEERROR, nil, "id不能为空")
+		return
+	}
+
+	if err := validator.Validate(&req); err != nil {
+		response.Response(ctx, http.StatusOK, errmsg.VALIDATEERROR, nil, err.Error())
+		return
+	}
+
+	err := service.NewAdminService(orm.GetDBWithContext(ctx.Request.Context())).AdminUpdate(req)
+
+	if err != nil {
+		response.Response(ctx, http.StatusOK, errmsg.ERROE_ADD_DATA, nil, err.Error())
+		return
+	}
+
+	//返回结果
+	response.Success(ctx, nil, "成功")
+}
+
+func (c Admin) List(ctx *gin.Context) {
+
+	var req = schema.AdminListRequest{}
+
+	if err := ctx.BindJSON(&req); err != nil {
+		response.Fail(ctx, errmsg.INVALIDDATAFORMAT, nil)
+		return
+	}
+
+	if err := validator.Validate(&req); err != nil {
+		response.Response(ctx, http.StatusOK, errmsg.VALIDATEERROR, nil, err.Error())
+		return
+	}
+
+	data, err := service.NewAdminService(orm.GetDBWithContext(ctx.Request.Context())).GetAdminList(req)
+
+	if err != nil {
+		response.Response(ctx, http.StatusOK, errmsg.FAILED_TO_QUERY_DATA, nil, err.Error())
+		return
+	}
+
+	//返回结果
+	response.Success(ctx, data, "成功")
 }
 
 func NewAdmin() Admin {

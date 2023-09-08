@@ -11,6 +11,7 @@ import (
 	"admin-server/internal/controller/expert"
 	"admin-server/internal/controller/feedback"
 	"admin-server/internal/controller/payment"
+	"admin-server/internal/controller/permission"
 	"admin-server/internal/controller/post"
 	"admin-server/internal/controller/sensitiveword"
 	"admin-server/internal/controller/sport_type"
@@ -20,6 +21,7 @@ import (
 	"admin-server/internal/controller/version"
 	"admin-server/internal/middleware"
 	"admin-server/internal/qcsocket"
+	"admin-server/internal/response"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"net/http"
@@ -39,10 +41,41 @@ func CollectRoute(r *gin.Engine) *gin.Engine {
 	noAuthGroup := r.Group("/admin")
 
 	admin := admin.NewAdmin()
-	noAuthGroup.POST("/register", admin.Register)
+	noAuthGroup.POST("/add", admin.Add)
 	noAuthGroup.POST("/login", admin.Login)
 	group.POST("/info", admin.Info)
 	group.POST("/changepw", admin.ChangePassword)
+	group.POST("/list", admin.List)
+	group.POST("/update", admin.Update)
+	group.POST("/getrouts", func(ctx *gin.Context) {
+		routers := r.Routes()
+		res := make([]map[string]string, 0, len(routers))
+		for _, v := range routers {
+			res = append(res, map[string]string{
+				"method": v.Method,
+				"path":   v.Path,
+			})
+		}
+		response.Success(ctx, res, "成功")
+	})
+
+	sysapi := permission.NewSysApi()
+	sysapiGroup := group.Group("/sys_api").Use(middleware.CasbinHandler()) //权限控制
+	sysapiGroup.POST("/info", sysapi.Info)
+	sysapiGroup.POST("/list", sysapi.List)
+	sysapiGroup.POST("/add", sysapi.Add)
+	sysapiGroup.POST("/update", sysapi.Update)
+	sysapiGroup.POST("/del", sysapi.Del)
+
+	role := permission.NewRole()
+	roleGroup := group.Group("/role")
+	roleGroup.POST("/info", role.Info)
+	roleGroup.POST("/list", role.List)
+	roleGroup.POST("/add", role.Add)
+	roleGroup.POST("/update", role.Update)
+	roleGroup.POST("/del", role.Del)
+	roleGroup.POST("/get_role_policy_path", role.GetRolePolicyPath)
+	roleGroup.POST("/set_role_policy_path", role.SetRolePolicyPath)
 
 	//group.POST("/upload", middleware.Authmiddleware(), upload.NewUpload().Upload)
 

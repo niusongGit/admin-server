@@ -67,7 +67,7 @@ func InitDb() {
 	db = db.Set("gorm:table_options", "COLLATE=utf8mb4_general_ci")
 	// 迁移数据表，在没有数据表结构变更时候，建议注释不执行
 	err = db.AutoMigrate(
-		&model.Admin{}, &model.Announcement{}, &model.Banner{}, &model.Blogroll{},
+		&model.Admin{}, &model.Role{}, &model.SysApi{}, &model.Announcement{}, &model.Banner{}, &model.Blogroll{},
 		&model.Comment{}, &model.CommentLog{},
 		&model.Competition{}, &model.CompetitionType{},
 		&model.DataDictionary{},
@@ -127,7 +127,7 @@ func GetDBWithContext(c context.Context) *gorm.DB {
 func initData() {
 	err := GetDB().Transaction(func(tx *gorm.DB) error {
 
-		if err := tx.Where(model.Admin{Id: 1, AdminName: "admin"}).Attrs(model.Admin{Password: "$2a$10$92EgCdFEKsB.v5VU.LAQe.5FkwyfzoszM2xW0BzL5y.O0R.KIxGAK"}).FirstOrCreate(&model.Admin{}).Error; err != nil {
+		if err := tx.Where(model.Admin{Id: 1, AdminName: "admin"}).Attrs(model.Admin{Password: "$2a$10$92EgCdFEKsB.v5VU.LAQe.5FkwyfzoszM2xW0BzL5y.O0R.KIxGAK", RoleId: -1}).FirstOrCreate(&model.Admin{}).Error; err != nil {
 			return err
 		}
 

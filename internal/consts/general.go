@@ -50,3 +50,8 @@ const (
 	WithdrawStatusFailed         // 提现审核失败
 	WithdrawStatusSuccess        // 提现审核成功
 )
+
+const (
+	RootRoleName = "超级管理员"
+	SubjectRole  = "role_%d" //Request definition中的sub在casbin_rule表中的格式
+)
